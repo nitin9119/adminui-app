@@ -6,23 +6,22 @@ const { Search } = Input;
 
 export const Admin = () => {
   let [data, setData] = useState([]);
+  let [selectedItems, setSelectedItems] = useState([]);
   const [selectionType, setSelectionType] = useState("checkbox");
 
   //   const [selectionType, setSelectionType] = useState("checkbox");
 
-  //   const rowSelection = {
-  //     onChange: (selectedRowKeys, selectedRows) => {
-  //       console.log(
-  //         `selectedRowKeys: ${selectedRowKeys}`,
-  //         "selectedRows: ",
-  //         selectedRows
-  //       );
-  //     },
-  //     getCheckboxProps: (record) => ({
-  //       disabled: record.name === "Disabled User", // Column configuration not to be checked
-  //       name: record.name,
-  //     }),
-  //   };
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
+
+      setSelectedItems(selectedRows);
+    },
+  };
 
   useEffect(() => {
     getData();
@@ -60,6 +59,12 @@ export const Admin = () => {
     )
       .then((d) => d.json())
       .then((res) => {
+        res = res.map((ele) => {
+          let temp = Object.assign({}, ele);
+          temp.key = ele.id;
+          return temp;
+        });
+
         setData(res);
       });
   };
@@ -84,6 +89,14 @@ export const Admin = () => {
     setData(dataSource.filter((item) => item.id !== id));
   };
 
+  const handleSelectedItem = () => {
+    let dat = selectedItems.map((e) => e.id);
+    console.log(dat);
+    let newdata = data.filter((item) => {
+      return !dat.includes(item.id);
+    });
+    setData(newdata);
+  };
   return (
     <div>
       <Search
@@ -99,24 +112,15 @@ export const Admin = () => {
           setSelectionType(value);
         }}
         value={selectionType}
-      >
-        <Radio value="checkbox">Checkbox</Radio>
-        <Radio value="radio">radio</Radio>
-      </Radio.Group>
-
-      <Divider />
+      ></Radio.Group>
 
       <Table
         style={{ width: "80%", marginLeft: "10%" }}
-        rowSelection={{
-          type: "checkbox",
-          onSelect: (record) => {
-            console.log(record);
-          },
-        }}
+        rowSelection={{ ...rowSelection }}
         columns={head}
         dataSource={data}
       />
+      <button onClick={handleSelectedItem}>delete selected</button>
     </div>
   );
 };
